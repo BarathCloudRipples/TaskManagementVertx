@@ -1,0 +1,182 @@
+------------------------------------------------------------------------------------------------
+
+
+Signup POST method :
+
+	curl --location --request POST 'localhost:8080/signup' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+	"firstname": "Barath",
+	"lastname": "Elumalai",
+	"designation": "Software Developer",
+	"name": "barath",
+	"email": "barath.e@cloudripples.io",
+	"password": "Test@1234",
+	"role": {
+	"roleid": 1
+	}
+}'
+
+output :
+
+{
+    "successMessage": "User created successfully"
+}
+
+
+------------------------------------------------------------------------------------------------
+
+
+Forgot Password PUT method :
+
+	curl --location --request PUT 'localhost:8080/forgotpassword' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+	"email": "barath.e@cloudripples.io",
+	"password": "Barath@1234"
+}'
+
+output :
+
+{
+    "successMessage": " Password Updated"
+}
+
+
+------------------------------------------------------------------------------------------------
+
+
+Login POST method :
+
+	curl --location --request POST 'localhost:8080/login' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+	"name": "",
+	"email": "barath.e@cloudripples.io",
+	"password": "Barath@1234"
+}'
+
+        (or)
+        
+        curl --location --request POST 'localhost:8080/login' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+	"name": "barath",
+	"email": "",
+	"password": "Barath@1234"
+}'
+
+output :
+
+{
+    "token": "e7435b3f-4e8f-4389-b74b-ff0fcf29a435",
+    "expiryDate": "Token expires after 24 hours",
+    "successMessage": "Login successfully"
+}
+
+
+------------------------------------------------------------------------------------------------
+
+
+User Authorization GET method (Can be accessed by both user and admin role) :
+
+	curl --location --request GET 'localhost:8080/user/e7435b3f-4e8f-4389-b74b-ff0fcf29a435' \
+--header 'Authorization: e7435b3f-4e8f-4389-b74b-ff0fcf29a435'
+
+output :
+
+{
+    "e7435b3f-4e8f-4389-b74b-ff0fcf29a435": {
+        "firstname": "Barath",
+        "password": "Barath@1234",
+        "roleid": 1,
+        "rolename": "admin",
+        "name": "barath",
+        "id": "4028c4f4845b77ad01845b7c20580000",
+        "designation": "Software Developer",
+        "email": "barath.e@cloudripples.io",
+        "lastname": "Elumalai"
+    }
+}
+
+
+------------------------------------------------------------------------------------------------
+
+
+Role Authorization GET method (Access by admin) :
+
+	curl --location --request GET 'localhost:8080/role/e7435b3f-4e8f-4389-b74b-ff0fcf29a435' \
+--header 'Authorization: e7435b3f-4e8f-4389-b74b-ff0fcf29a435'
+
+output :
+
+[
+    {
+        "roleid": 1,
+        "rolename": "admin"
+    },
+    {
+        "roleid": 2,
+        "rolename": "user"
+    }
+]
+
+
+------------------------------------------------------------------------------------------------
+
+
+Role Authorization GET method (Access by user) :
+
+	curl --location --request GET 'localhost:8080/role/bf79f8cc-77bb-4dfd-971b-79feb6562ae2' \
+--header 'Authorization: bf79f8cc-77bb-4dfd-971b-79feb6562ae2'
+
+output :
+
+{
+    "errorMessage": "Unauthorized - Only Admin can view the Role table"
+}
+
+
+------------------------------------------------------------------------------------------------
+
+
+Role Authorization POST method to create role(Access by admin) :
+
+	curl --location --request POST 'localhost:8080/role' \
+--header 'Authorization: e7435b3f-4e8f-4389-b74b-ff0fcf29a435' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+	"roleid": 3,
+	"rolename":"manager"
+}'
+
+output :
+
+{
+    "successMessage": "Role created successfully"
+}
+
+
+------------------------------------------------------------------------------------------------
+
+
+Role Authorization POST method to create role(Access by user) :
+
+	curl --location --request POST 'localhost:8080/role' \
+--header 'Authorization: bf79f8cc-77bb-4dfd-971b-79feb6562ae2' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+	"roleid": 3,
+	"rolename":"manager"
+}'
+
+output :
+
+{
+    "errorMessage": "Unauthorized - Only Admin can create the Role"
+}
+
+
+------------------------------------------------------------------------------------------------
+
+
