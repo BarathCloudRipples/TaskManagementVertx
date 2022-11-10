@@ -6,8 +6,10 @@ import java.util.Set;
 
 import io.github.task.vertx.api.entity.User;
 import io.github.task.vertx.api.entity.Role;
+import io.github.task.vertx.api.entity.Task;
 import io.github.task.vertx.api.service.UserService;
 import io.github.task.vertx.api.service.RoleService;
+import io.github.task.vertx.api.service.TaskService;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
@@ -21,6 +23,7 @@ import io.vertx.ext.web.handler.CorsHandler;
 
 public class Verticle extends AbstractVerticle {
 
+	  @SuppressWarnings("deprecation")
 	  @Override
 	  public void start(Future<Void> future) {
 	      Router router = Router.router(vertx); // <1>
@@ -49,11 +52,16 @@ public class Verticle extends AbstractVerticle {
 	      router.put("/forgotpassword").handler(this::passwordUpdate);
 	      router.post("/login").handler(this::login);
 	      
-	      router.get("/user/:token").handler(this::getUser);
-	      
-	      router.get("/role/:token").handler(this::getRole);
 	      router.post("/role").handler(this::saveRole);
-	      
+	      router.get("/role/:token").handler(this::getRole);
+	      router.get("/user/:token").handler(this::getUser);
+
+	      router.get("/task").handler(this::getTask);
+	      router.post("/task").handler(this::saveTask);
+	      router.put("/task").handler(this::updateTask);
+	      router.delete("/task/:id").handler(this::removeTask);
+	      router.get("/task/:name").handler(this::getTaskByName);
+	      router.put("/task/:name").handler(this::updateStatus);
 
 	      vertx.createHttpServer() // <4>
 	              .requestHandler(router::accept)
@@ -69,6 +77,7 @@ public class Verticle extends AbstractVerticle {
 
 	  UserService userService = new UserService();
 	  RoleService roleService = new RoleService();
+	  TaskService taskService = new TaskService();
 
 
 	  private void signup(RoutingContext context) {
@@ -79,9 +88,7 @@ public class Verticle extends AbstractVerticle {
 		              sendError(ar.cause().getMessage(), context.response());
 		          }
 		      });
-		  }
-	  
-
+	  }
 	  
 	  private void login(RoutingContext context) {
 		  	userService.validate(context, Json.decodeValue(context.getBodyAsString(), User.class), ar -> {
@@ -91,7 +98,7 @@ public class Verticle extends AbstractVerticle {
 		              sendError(ar.cause().getMessage(), context.response());
 		          }
 		      });
-		  }
+	  }
 	  
 	  private void passwordUpdate(RoutingContext context) {
 		  userService.passwordUpdate(context, Json.decodeValue(context.getBodyAsString(), User.class), ar -> {
@@ -102,7 +109,9 @@ public class Verticle extends AbstractVerticle {
 	                sendError(ar.cause().getMessage(), context.response());
 	            }
 	        });
-	    }
+	  }
+	  
+	  
 	  
 	  private void getUser(RoutingContext context) {
 		  userService.getUserDetails(context, context.request().getHeader("Authorization"), context.request().getParam("token"), ar -> {
@@ -116,7 +125,7 @@ public class Verticle extends AbstractVerticle {
 	                sendError(ar.cause().getMessage(), context.response());
 	            }
 	        });
-	    }
+	  }
 	  
 	  private void getRole(RoutingContext context) {
 		  roleService.getRoleDetails(context, context.request().getHeader("Authorization"), context.request().getParam("token"), ar -> {
@@ -130,7 +139,7 @@ public class Verticle extends AbstractVerticle {
 	                sendError(ar.cause().getMessage(), context.response());
 	            }
 	        });
-	    }
+	  }
 	  
 	  private void saveRole(RoutingContext context) {
 		  roleService.saveRole(context, context.request().getHeader("Authorization"), Json.decodeValue(context.getBodyAsString(), Role.class), ar -> {
@@ -141,8 +150,84 @@ public class Verticle extends AbstractVerticle {
 	                sendError(ar.cause().getMessage(), context.response());
 	            }
 	        });
-	    }
+	  }
 	    
+	  
+	  
+	  private void getTask(RoutingContext context) {
+		  taskService.getTaskDetails(context, context.request().getHeader("Authorization"), ar -> {
+			  if (ar.succeeded()) {
+	                if (ar.result() != null){
+	                    sendSuccess(Json.encodePrettily(ar.result()), context.response());
+	                } else {
+	                    sendSuccess(context.response());
+	                }
+	            } else {
+	                sendError(ar.cause().getMessage(), context.response());
+	            }
+	        });
+	  }
+	  
+	  private void saveTask(RoutingContext context) {
+		  taskService.save(context, context.request().getHeader("Authorization"), Json.decodeValue(context.getBodyAsString(), Task.class), ar -> {
+	            if (ar.succeeded()) {
+	                sendSuccess(context.response());
+	                
+	            } else {
+	                sendError(ar.cause().getMessage(), context.response());
+	            }
+	        });
+	  }
+	  
+	  private void updateTask(RoutingContext context) {
+		  taskService.update(context, context.request().getHeader("Authorization"), Json.decodeValue(context.getBodyAsString(), Task.class), ar -> {
+	            if (ar.succeeded()) {
+	                sendSuccess(context.response());
+	                
+	            } else {
+	                sendError(ar.cause().getMessage(), context.response());
+	            }
+	        });
+	  }
+	  
+	  private void removeTask(RoutingContext context) {
+	        taskService.remove(context, context.request().getHeader("Authorization"), context.request().getParam("id"), ar -> {
+	            if (ar.succeeded()) {
+	                sendSuccess(context.response());
+	            } else {
+	                sendError(ar.cause().getMessage(), context.response());
+	            }
+	        });
+	  }
+	  
+	  private void getTaskByName(RoutingContext context) {
+	        taskService.getByName(context, context.request().getHeader("Authorization"), context.request().getParam("name"), ar -> {
+	            if (ar.succeeded()) {
+	                if (ar.result() != null){
+	                    sendSuccess(Json.encodePrettily(ar.result()), context.response());
+	                } else {
+	                    sendSuccess(context.response());
+	                }
+	            } else {
+	                sendError(ar.cause().getMessage(), context.response());
+	            }
+	        });
+	  }
+	  
+	  private void updateStatus(RoutingContext context) {
+		  taskService.updateStatus(context, context.request().getHeader("Authorization"), context.request().getParam("name"), Json.decodeValue(context.getBodyAsString(), Task.class), ar -> {
+	            if (ar.succeeded()) {
+	                sendSuccess(context.response());
+	                
+	            } else {
+	                sendError(ar.cause().getMessage(), context.response());
+	            }
+	        });
+	  }
+	  
+	  
+	  
+	  
 	  private void sendError(String errorMessage, HttpServerResponse response) {
 	      JsonObject jObj = new JsonObject();
 	      jObj.put("errorMessage", errorMessage);
@@ -165,5 +250,6 @@ public class Verticle extends AbstractVerticle {
 	                .setStatusCode(200)
 	                .putHeader("content-type", "application/json; charset=utf-8")
 	                .end(responseBody);
-	    } 
-	}
+	  } 
+}
+

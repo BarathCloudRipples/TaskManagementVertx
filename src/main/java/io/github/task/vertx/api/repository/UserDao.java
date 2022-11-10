@@ -20,26 +20,26 @@ public class UserDao {
     protected EntityManager entityManager;
 
     public static UserDao getInstance()
-    	{
+    {
         if (instance == null){
             instance = new UserDao();
         }
         return instance;
-    	}
+    }
 
     private UserDao()
-    	{
+    {
         entityManager = getEntityManager();
-    	}
+    }
 
     private EntityManager getEntityManager()
-    	{
+    {
         EntityManagerFactory factory = Persistence.createEntityManagerFactory("crudHibernatePU");
         if (entityManager == null) {
             entityManager = factory.createEntityManager();
         }
         return entityManager;
-    	}
+    }
 
 	 public User getByUsername(String name) {
 		 User user = null;

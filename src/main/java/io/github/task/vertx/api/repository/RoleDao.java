@@ -55,7 +55,7 @@ public class RoleDao {
 	    	ex.printStackTrace();
 	    	}
 	    	return role;
-	  }
+	}
     
     public void persist(Role role)
 	{
