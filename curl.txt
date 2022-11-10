@@ -1,4 +1,12 @@
-------------------------------------------------------------------------------------------------
+
+
+			____________________________________________
+
+			     Creation of User for authentication
+			____________________________________________
+
+
+
 
 
 Signup POST method :
@@ -75,7 +83,15 @@ output :
 }
 
 
-------------------------------------------------------------------------------------------------
+
+
+		      __________________________________________________
+
+			Creation of user/admin role for authorization
+		      __________________________________________________
+
+
+
 
 
 User Authorization GET method (Can be accessed by both user and admin role) :
@@ -140,7 +156,7 @@ output :
 ------------------------------------------------------------------------------------------------
 
 
-Role Authorization POST method to create role(Access by admin) :
+Role Authorization POST method to create role (Access by admin) :
 
 	curl --location --request POST 'localhost:8080/role' \
 --header 'Authorization: e7435b3f-4e8f-4389-b74b-ff0fcf29a435' \
@@ -160,7 +176,7 @@ output :
 ------------------------------------------------------------------------------------------------
 
 
-Role Authorization POST method to create role(Access by user) :
+Role Authorization POST method to create role (Access by user) :
 
 	curl --location --request POST 'localhost:8080/role' \
 --header 'Authorization: bf79f8cc-77bb-4dfd-971b-79feb6562ae2' \
@@ -177,6 +193,161 @@ output :
 }
 
 
+
+
+		      __________________________________________________
+
+			Implementation of role based task management
+		      __________________________________________________
+
+
+
+
+
+Task Authorization GET method by admin :
+
+	curl --location --request GET 'localhost:8080/task' \
+--header 'Authorization: 3fbce465-5c20-4faa-800a-f08d0efc697f'
+
+output:
+
+[
+    {
+        "taskid": 1,
+        "title": "Task Management",
+        "description": "creating task progress for user/admin role",
+        "status": "on progress",
+        "timeline": "Nov 9",
+        "assignto": "barath"
+    },
+    {
+        "taskid": 2,
+        "title": "Simple CRUD",
+        "description": "Implementing CRUD operation in vertx project ",
+        "status": "open",
+        "timeline": "Nov 11",
+        "assignto": "testuser"
+    }
+]
+
+
 ------------------------------------------------------------------------------------------------
+
+
+Task Authorization POST method by admin :
+
+	curl --location --request POST 'localhost:8080/task' \
+--header 'Authorization: 3fbce465-5c20-4faa-800a-f08d0efc697f' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "title":"Login Vertx",
+    "description": "creating login vertx task",
+    "status":"open",
+    "timeline": "Nov 11",
+    "assignto":"java"
+}'
+
+output :
+
+{
+    "successMessage": "Task created successfully"
+}
+
+
+------------------------------------------------------------------------------------------------
+
+
+Task Authorization PUT method by admin :
+
+	curl --location --request PUT 'localhost:8080/task' \
+--header 'Authorization: 3fbce465-5c20-4faa-800a-f08d0efc697f' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "title":"Login Vertx",
+    "description": "creating login vertx task and add authorization",
+    "status":"open",
+    "timeline": "Nov 12",
+    "assignto":"java"
+}'
+
+output :
+
+{
+    "successMessage": "Task updated successfully"
+}
+
+
+------------------------------------------------------------------------------------------------
+
+
+Task Authorization DELETE method by admin :
+
+	curl --location --request DELETE 'localhost:8080/task/2' \
+--header 'Authorization: 3fbce465-5c20-4faa-800a-f08d0efc697f'
+
+output :
+
+{
+    "successMessage": "Task removed successfully"
+}
+
+
+------------------------------------------------------------------------------------------------
+
+
+Task details GET method by user (can be accessed by admin also) :
+
+	curl --location --request GET 'localhost:8080/task/testuser' \
+--header 'Authorization: 0635db5c-ec22-457c-9333-23fd918efc96'
+
+output :
+
+{
+    "taskid": 2,
+    "title": "Simple CRUD",
+    "description": "Implementing CRUD operation in vertx project ",
+    "status": "open",
+    "timeline": "Nov 11",
+    "assignto": "testuser"
+}
+
+
+------------------------------------------------------------------------------------------------
+
+
+Task status update PUT method by user (can be accessed by admin also) :
+
+	curl --location --request PUT 'localhost:8080/task/testuser' \
+--header 'Authorization: 0635db5c-ec22-457c-9333-23fd918efc96' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "status": "on progress"
+}'
+
+output :
+
+{
+    "successMessage": "Status updated successfully"
+}
+
+
+------------------------------------------------------------------------------------------------
+
+
+Task details GET method by user after status update :
+
+	curl --location --request GET 'localhost:8080/task/testuser' \
+--header 'Authorization: 0635db5c-ec22-457c-9333-23fd918efc96'
+
+output :
+
+{
+    "taskid": 2,
+    "title": "Simple CRUD",
+    "description": "Implementing CRUD operation in vertx project ",
+    "status": "on progress",
+    "timeline": "Nov 11",
+    "assignto": "testuser"
+}
 
 
