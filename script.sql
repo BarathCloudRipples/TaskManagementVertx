@@ -32,3 +32,21 @@ VALUES
 	(2, 'user');
 	
 	
+CREATE TABLE IF NOT EXISTS public.task_details
+(
+    task_id serial,
+    title character varying(50),
+    description character varying(50),
+    status character varying(50)",
+    timeline character varying(50),
+    assign_to character varying(50) NOT NULL,
+    PRIMARY KEY (assign_to)
+);
+
+
+CREATE SEQUENCE IF NOT EXISTS task_details_task_id_seq
+    INCREMENT BY 1
+    START WITH 1
+    MINVALUE 0;
+    
+
