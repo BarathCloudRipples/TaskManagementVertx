@@ -7,9 +7,8 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
 
+import io.github.task.vertx.api.entity.Assign;
 import io.github.task.vertx.api.entity.Task;
-
-import io.vertx.ext.web.RoutingContext;
 
 public class TaskDao {
 	
@@ -77,11 +76,24 @@ public class TaskDao {
         }
     }
     
-    public Task getByUsername(String name)
+    public List<Assign> getByName(String name)
 	  {
 	      try{
-	    	  Object result = entityManager.createQuery( "FROM Task WHERE assign_to = :assignto", Task.class)
+	    	  return entityManager.createQuery( "FROM Assign WHERE assign_to = :assignto", Assign.class)
 	    	        .setParameter("assignto", name)
+	    	        .getResultList();
+	      }
+	      catch(Exception ex){
+	            ex.printStackTrace();
+	      }
+	     return null;
+	}
+
+	public Task getByTitle(String title)
+	  {
+	      try{
+	    	  Object result = entityManager.createQuery( "FROM Task WHERE title = :title", Task.class)
+	    	        .setParameter("title", title)
 	    	        .getSingleResult();
 
 	      if (result != null) {
@@ -93,13 +105,28 @@ public class TaskDao {
 	      }
 	     return null;
 	}
+
+	public Assign getByAssignId(int id) {
+        try{
+			Object result = entityManager.createQuery( "FROM Assign WHERE assign_id = :id", Assign.class)
+				  .setParameter("id", id)
+				  .getSingleResult();
+
+		if (result != null) {
+			return (Assign) result;
+		}
+		}
+		catch(Exception ex){
+			  ex.printStackTrace();
+		}
+	   return null;
+    }
     
     public void updateStatus(String name, String status)
 	{   
 		  try {
-			  	System.out.println("UserDao.updateStatus");
 		        entityManager.getTransaction().begin();
-		        Query update = entityManager.createQuery("UPDATE Task set status='"+status+"'  WHERE assign_to='"+name+"'");
+		        Query update = entityManager.createQuery("UPDATE Assign set status='" + status + "'  WHERE assign_to='" + name + "'");
 		        update.executeUpdate();
 				entityManager.getTransaction().commit();  		 
 		  }  catch (Exception ex) {
@@ -107,6 +134,19 @@ public class TaskDao {
 		            entityManager.getTransaction().rollback();
 		  }
     }
+
+	public void assignTask(Assign task)
+	{   
+		try {
+			entityManager.getTransaction().begin();
+			entityManager.persist(task);
+			entityManager.getTransaction().commit();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			entityManager.getTransaction().rollback();
+		}
+    }
+	
     
     public void persist(Task task)
 	{
@@ -120,11 +160,11 @@ public class TaskDao {
 			}
     }
     
-    public void update(Task task, String name) {
+    public void update(Task task, int taskid) {
 			try {
 				  
 			    entityManager.getTransaction().begin();
-			    Query update = entityManager.createQuery("UPDATE Task set title='"+task.getTitle()+"', description='"+task.getDescription()+"', status='"+task.getStatus()+"', timeline='"+task.getTimeline()+"'  WHERE assign_to='"+name+"'");
+			    Query update = entityManager.createQuery("UPDATE Task set title='" + task.getTitle() + "', description='" + task.getDescription() + "'  WHERE task_id='" + taskid + "'");
 			        update.executeUpdate();
 					entityManager.getTransaction().commit();  		 
 			  }  catch (Exception ex) {

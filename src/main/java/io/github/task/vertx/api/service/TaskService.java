@@ -2,9 +2,9 @@ package io.github.task.vertx.api.service;
 
 import java.util.List;
 
+import io.github.task.vertx.api.entity.Assign;
 import io.github.task.vertx.api.entity.Task;
 import io.github.task.vertx.api.repository.TaskDao;
-
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -60,7 +60,7 @@ public class TaskService {
 			
 			if(rolename.equals("admin"))
 			{
-				Task task = taskDao.getByUsername(newTask.getAssignto());
+				Task task = taskDao.getByTitle(newTask.getTitle());
 				
 				if(task != null) 
 				{
@@ -96,15 +96,15 @@ public class TaskService {
         	
         	if(rolename.equals("admin"))
         	{
-        		Task task = taskDao.getByUsername(newTask.getAssignto());
+        		Task task = taskDao.getById(newTask.getTaskid());
 				
 				if(task == null) 
 				{
-					sendError("User doesn't exist", context.response(),400);
+					sendError("Task doesn't exist", context.response(),400);
 				}
 				else
 				{
-	        		taskDao.update(newTask, newTask.getAssignto());
+	        		taskDao.update(newTask, newTask.getTaskid());
 	                sendSuccess("Task updated successfully", context.response(),200);
 	                future.complete();
 				}
@@ -149,25 +149,62 @@ public class TaskService {
             future.fail(ex);
         }
     }
-	
-	public void getByName(RoutingContext context, String authorization, String name, Handler<AsyncResult<Task>> handler) {
+
+	public void assign(RoutingContext context, String authorization, Assign newTask, Handler<AsyncResult<Assign>> handler) {
         
-		Future<Task> future = Future.future();
+		Future<Assign> future = Future.future();
+        future.setHandler(handler);
+        String rolename = null;
+        
+        try
+        {
+        	rolename = getName(context, authorization, "rolename");
+			
+			if(rolename.equals("admin"))
+			{
+				Task task = taskDao.getById(newTask.getTask().getTaskid());
+				
+				if(task == null) 
+				{
+					sendError("Task doesn't exist", context.response(),400);
+				}
+				else 
+				{
+					taskDao.assignTask(newTask);
+					sendSuccess("User assigned successfully", context.response(), 200);
+					future.complete();
+				}
+			}
+			else 
+	       	{
+	       	    sendError("Unauthorized - Only Admin can assign the Task", context.response(),401);
+	       	}   
+        }
+        catch (Throwable ex) 
+        {
+          	sendError("Unauthorized", context.response(),401);
+            future.fail(ex);
+        }
+    }
+	
+	public void getByName(RoutingContext context, String authorization, String name, Handler<AsyncResult<List<Assign>>> handler) {
+        
+		Future<List<Assign>> future = Future.future();
         future.setHandler(handler);
         String username = null, rolename = null;
         
         try
         {
         	
-        	Task task = taskDao.getByUsername(name);
+        	List<Assign> task = taskDao.getByName(name);
         	username = getName(context, authorization, "username");
         	rolename = getName(context, authorization, "rolename");
 			
-			if((task != null && username.equals(task.getAssignto())) || rolename.equals("admin"))
+			if(task != null && (username.equals(task.get(0).getAssignto()) || rolename.equals("admin")))
 			{
 				future.complete(task);
 			}
-			else if(!username.equals(task.getAssignto()))
+			else if(!username.equals(task.get(0).getAssignto()))
 			{
 				sendError("User mismatch", context.response(),401);
 			}
@@ -183,23 +220,22 @@ public class TaskService {
         }
     }
 	
-	public void updateStatus(RoutingContext context,String authorization, String name, Task newTask, Handler<AsyncResult<Task>> handler) {
-        Future<Task> future = Future.future();
+	public void updateStatus(RoutingContext context,String authorization, int id, Assign newTask, Handler<AsyncResult<Assign>> handler) {
+        Future<Assign> future = Future.future();
         future.setHandler(handler);
         String username = null, rolename = null;
-        Task task = null;
-		System.out.println(name);
+        Assign task = null;
 
         try {
 
         	 username = getName(context, authorization, "username");
          	 rolename = getName(context, authorization, "rolename");
          	 
-        	 task = taskDao.getByUsername(name);
+        	 task = taskDao.getByAssignId(id);
         	 
-        	 if((task != null && username.equals(task.getAssignto())) || rolename.equals("admin"))
+        	 if(task != null && ( username.equals(task.getAssignto()) || rolename.equals("admin")))
         	 {
-        		 taskDao.updateStatus(username, newTask.getStatus());
+        		 taskDao.updateStatus(task.getAssignto(), newTask.getStatus());
                  sendSuccess("Status updated successfully", context.response(),200);
                  future.complete();
         	 }

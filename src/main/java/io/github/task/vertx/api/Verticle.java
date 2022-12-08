@@ -5,6 +5,7 @@ import java.util.Set;
 
 
 import io.github.task.vertx.api.entity.User;
+import io.github.task.vertx.api.entity.Assign;
 import io.github.task.vertx.api.entity.Role;
 import io.github.task.vertx.api.entity.Task;
 import io.github.task.vertx.api.service.UserService;
@@ -56,12 +57,15 @@ public class Verticle extends AbstractVerticle {
 	      router.get("/role/:token").handler(this::getRole);
 	      router.get("/user/:token").handler(this::getUser);
 
-	      router.get("/task").handler(this::getTask);
+	      router.get("/task/list").handler(this::getTask);
 	      router.post("/task").handler(this::saveTask);
-	      router.put("/task").handler(this::updateTask);
+	      router.put("/task/update").handler(this::updateTask);
 	      router.delete("/task/:id").handler(this::removeTask);
-	      router.get("/task/:name").handler(this::getTaskByName);
-	      router.put("/task/:name").handler(this::updateStatus);
+
+
+	      router.post("/task/assign").handler(this::assignTask);
+	      router.get("/task/list/:name").handler(this::getTaskByName);
+	      router.put("/task/status/:id").handler(this::updateStatus);
 
 	      vertx.createHttpServer() // <4>
 	              .requestHandler(router::accept)
@@ -199,6 +203,17 @@ public class Verticle extends AbstractVerticle {
 	            }
 	        });
 	  }
+
+	  private void assignTask(RoutingContext context) {
+		taskService.assign(context, context.request().getHeader("Authorization"), Json.decodeValue(context.getBodyAsString(), Assign.class), ar -> {
+			  if (ar.succeeded()) {
+				  sendSuccess(context.response());
+				  
+			  } else {
+				  sendError(ar.cause().getMessage(), context.response());
+			  }
+		  });
+	}
 	  
 	  private void getTaskByName(RoutingContext context) {
 	        taskService.getByName(context, context.request().getHeader("Authorization"), context.request().getParam("name"), ar -> {
@@ -215,7 +230,7 @@ public class Verticle extends AbstractVerticle {
 	  }
 	  
 	  private void updateStatus(RoutingContext context) {
-		  taskService.updateStatus(context, context.request().getHeader("Authorization"), context.request().getParam("name"), Json.decodeValue(context.getBodyAsString(), Task.class), ar -> {
+		  taskService.updateStatus(context, context.request().getHeader("Authorization"), Integer.parseInt(context.request().getParam("id")), Json.decodeValue(context.getBodyAsString(), Assign.class), ar -> {
 	            if (ar.succeeded()) {
 	                sendSuccess(context.response());
 	                
